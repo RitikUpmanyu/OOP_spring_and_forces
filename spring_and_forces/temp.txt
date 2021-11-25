@@ -1,0 +1,178 @@
+package spring_and_forces;
+
+import java.util.ArrayList;
+
+public class StringObj {
+	
+	
+	   private Vector gravity;
+	   private int n;
+	   
+	   private ArrayList<Particle> particleList; 
+	   private ArrayList<Spring> springList; 
+	   
+	   private Vector locked;
+	   
+	    //constructor
+	   public StringObj(Particle bobIn, Particle anchorIn, Vector Gravity, double restLength, double radius, double k, int n) {
+	     
+	       
+	       this.gravity=Gravity;
+	       this.n=n;
+	       
+	       double[] lockedData= {0,0};
+	       if(bobIn.getLocked()) lockedData[0]=1;
+	       if(anchorIn.getLocked()) lockedData[1]=1;
+	       
+	       this.locked=new Vector(lockedData);
+
+	       
+	       particleList=new ArrayList<>();
+	       springList=new ArrayList<>();
+	       anchorIn.setLocked(true);
+	       particleList.add(anchorIn);
+	       double[] bobVecData={0,0};
+    	   Vector bobVec=new Vector(bobVecData);
+	       for(int i=1;i<n-1;i++) {
+	    	   
+	    	   Particle bob=new Particle(bobVec);
+	    	   particleList.add(bob);
+	       }
+	       bobIn.setLocked(true);
+	       particleList.add(bobIn);
+	   
+	       double[] bob_velData={0,0};
+	       Vector bob_vel=new Vector(bob_velData);
+	       for(int i=0;i<n-1;i++) {
+	    	   Spring s= new Spring(particleList.get(i+1), particleList.get(i),bob_vel,gravity,restLength, radius, k);
+	    	   springList.add(s);
+	       }
+	       
+	       
+	       springList.get(0).updateBob(springList.get(1).getAnchor());
+    	   //springList.get(0).draw();
+           for(int i=1;i<n-2;i++) {
+	    	   springList.get(i).updateAnchor(springList.get(i-1).getBob());
+	    	   springList.get(i).updateBob(springList.get(i+1).getAnchor());
+	    	   //springList.get(i).draw();
+	       }
+           springList.get(n-2).updateAnchor(springList.get(n-3).getBob());
+    	   //springList.get(n-2).draw();
+           
+    	   // to get into stable position
+           for(int i=0;i<1000;i++) {
+	    	   this.move();
+	       }
+	       
+           if(this.locked.getx()==0) {
+        	   bobIn.setLocked(false);
+           }
+           if(this.locked.gety()==0) {
+        	   anchorIn.setLocked(false);
+           }
+	   }
+
+	   public void draw() {
+		   
+	           
+	           springList.get(0).updateBob(springList.get(1).getAnchor());
+	    	   springList.get(0).draw();
+	           for(int i=1;i<n-2;i++) {
+		    	   springList.get(i).updateAnchor(springList.get(i-1).getBob());
+		    	   springList.get(i).updateBob(springList.get(i+1).getAnchor());
+		    	   springList.get(i).draw();
+		       }
+	           springList.get(n-2).updateAnchor(springList.get(n-3).getBob());
+	    	   springList.get(n-2).draw();
+	           
+	           
+	           
+	   }
+	   
+	   public void updateBob(Particle bob) {
+		   
+           
+           springList.get(0).updateAnchor(bob);
+    	  
+           
+   }
+	   
+	   public void move() {
+		  
+           for(int i=0;i<n-1;i++) {
+	    	   springList.get(i).move();
+	       }
+		   
+           
+	   }
+	   
+	   
+	   
+	public static void main(String[] args) {
+		
+		
+		   double anchorx= -3.0;
+		   double anchory= 1;
+		   double restLength=0.01;
+		   
+	       double[] anchorData={anchorx, anchory};
+	   
+	       Vector anchorVec=new Vector(anchorData);
+	   
+	       Particle anchor=new Particle(anchorVec);
+	       
+	       //anchor.setLocked(true);
+	       
+	       double radius = 0.01;
+	       
+	       
+	       double[] gravityData={0.0, 0.0001};
+	       Vector gravity=new Vector(gravityData);
+	       
+		   double springCoeff=0.02;
+		   //Spring s1 = new Spring(bob, anchor,bob_vel,gravity,restLength, radius, springCoeff);
+		   
+		   
+
+		   
+
+		   double rx3 = 0.2;
+		   double ry3 = 1.0;
+		   double[] bobData3={rx3, ry3};
+	       Vector bob3Vec=new Vector(bobData3);
+	       Particle bob3=new Particle(bob3Vec);
+	       
+	       //bob3.setLocked(true);
+	       
+	       
+	       StringObj s=new StringObj(bob3, anchor, gravity, restLength, radius, springCoeff, 10);
+	       //StringObj s1=new StringObj(anchor, bob3,  gravity, restLength, radius, springCoeff, 10);
+	       StdDraw.setXscale(-1.0, +1.0);
+	       StdDraw.setYscale(-1.0, +1.0);
+	       StdDraw.enableDoubleBuffering();
+	       int i=0;
+	       boolean pressed=false;
+	       Particle mouse;
+	       
+	       while (true) {
+	    	   System.out.println(i++);
+	           StdDraw.clear(StdDraw.GRAY);
+	           StdDraw.setPenColor(StdDraw.BLACK);
+	           pressed=StdDraw.isMousePressed();
+	           s.draw();
+	           for(int j=0;j<10;j++) {
+	           s.move();
+	           }
+	           if(pressed) {
+	        	   double[] mouseData= {StdDraw.mouseX(),StdDraw.mouseY()};
+	        	   Vector mouseVec=new Vector(mouseData);
+	        	   mouse=new Particle(mouseVec);
+	        	   s.updateBob(mouse);
+	           }
+	           
+	           StdDraw.show();
+	           StdDraw.pause(10);
+	       }
+	}
+
+}
